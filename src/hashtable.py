@@ -22,6 +22,7 @@ class HashTable:
         self.original_capacity = capacity
         self.capacity = capacity  # Number of buckets in the hash table
         self.storage = [None] * capacity
+        self.resizing = False
 
     def __str__(self):
         output = ''
@@ -62,13 +63,16 @@ class HashTable:
         linked_pair = LinkedPair(key, value)
         if not hasattr(loc, 'key'):
             self.storage[hash_index] = linked_pair
+            self.resize()
             return True
         while loc is not None:
             if loc.key == key:
                 loc.value = value
+                self.resize()
                 return True
             if loc.next is None:
                 loc.next = linked_pair
+                self.resize()
                 return True
             loc = loc.next
 
@@ -88,6 +92,7 @@ class HashTable:
                 if prev is not None: prev.next = next_link
                 else: self.storage[hash_index] = next_link
                 loc.next = None
+                self.resize()
                 return True
             prev = loc
             loc = loc.next
@@ -120,6 +125,7 @@ class HashTable:
         return count / len(self.storage)
 
     def copy_storage(self, capacity):
+        self.resizing = True
         old_storage = self.storage
         self.storage = [None] * capacity
         self.capacity = capacity
@@ -129,6 +135,7 @@ class HashTable:
             while current_link is not None:
                 self.insert(current_link.key, current_link.value)
                 current_link = current_link.next
+        self.resizing = False
 
     def resize(self):
         '''
@@ -136,6 +143,7 @@ class HashTable:
         rehash all key/value pairs.
         Fill this in.
         '''
+        if self.resizing: return
         load_factor = self.get_load_factor()
         if load_factor < 0.2 and self.capacity > self.original_capacity:
             # halve size of storage and reapply all linked pairs
@@ -149,9 +157,16 @@ class HashTable:
 if __name__ == "__main__":
     ht = HashTable(2)
 
+    old_capacity = len(ht.storage)
+
     ht.insert("line_1", "Tiny hash table")
     ht.insert("line_2", "Filled beyond capacity")
     ht.insert("line_3", "Linked list saves the day!")
+    ht.insert("line_4", "Linked list saves the day!")
+    ht.insert("line_5", "Linked list saves the day!")
+    ht.insert("line_6", "Linked list saves the day!")
+    ht.insert("line_7", "Linked list saves the day!")
+    ht.insert("line_8", "Linked list saves the day!")
     print("")
 
     # Test storing beyond capacity
@@ -160,7 +175,6 @@ if __name__ == "__main__":
     print(ht.retrieve("line_3"))
 
     # Test resizing
-    old_capacity = len(ht.storage)
     ht.resize()
     new_capacity = len(ht.storage)
 
